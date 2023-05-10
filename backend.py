@@ -35,7 +35,7 @@ class UserInterface:
 
     @staticmethod
     def get_user_id_by_login(login):
-        # возвращает id пользователя по логину
+        # возвращает id пользователя по логину (логин уникален для каждого пользователя)
         return 1
 
     def create_desk(self, desk_name, desk_type):
@@ -46,12 +46,12 @@ class UserInterface:
         return True
 
     def get_owned_desks(self):
-        # список досок которыми владает пользователь (self.login) в формате (desk_id, desk_name)
-        return [(0, 'Доска 1'), (1, 'Доска для 2112')]
+        # список досок которыми владает пользователь (self.login) в формате (desk_id, desk_name, public, owner_login)
+        return [(0, 'Доска 1', 0, 'Myself'), (1, 'Доска для 2112', 1, 'Myself')]
 
     def get_public_desks(self):
-        # список публичных досок досок
-        return [(33, 'Доска 333'), (222, 'Доска 77')]
+        # список публичных досок досок в формате (desk_id, desk_name, public)
+        return [(33, 'Доска 333', 1, 'Sera'), (222, 'Доска 77', 1, 'Bob')]
 
     def can_edit_desk(self, desk_id):
         # можем ли мы редактировать доску
@@ -60,19 +60,13 @@ class UserInterface:
 
     @staticmethod
     def get_desk_name_by_desk_id(desk_id):
+        # desk_name - не уникален
         return 'desk_name'
 
     @staticmethod
-    def get_desk_id_by_desk_name(desk_name):
-        return 1
-
-    @staticmethod
     def get_column_name_by_column_id(column_id):
+        # column_name - не уникален
         return 'column_name'
-
-    @staticmethod
-    def get_column_id_by_column_name(column_name):
-        return 1
 
     def change_desk_name(self, desk_id, new_desk_name):
         # изменяем имя доски в бд
@@ -97,27 +91,28 @@ class UserInterface:
 
     def add_column_to_desk(self, desk_id, column_name):
         # добавляем новый столбец на доску
+        # создание новой колонки в бд
         return True
 
     def add_card_to_column(self, card_title, card_status, card_desk_id, card_column_id):
-        # добавляем карточку в конец колонки
+        # добавляем карточку в конец колонки + в бд
         return True
 
     def get_desk_card(self, desk_id):
         # возвращает карточки в desk в формате:
         cards = {
-            'название столбца': [
+            ('column_id', 'название столбца'): [
                 ('card_id', 'card_title', 'card_status', 'card_number_in_column'),
                 ('0', 'Заголовок', '1', '0'),
             ]
         }
         return {
-            'Столбец 1': [
+            (22, 'Столбец 1'): [
                 ('0', 'Заголовок 1', '1', '0'),
                 ('1', 'Заголовок 2', '1', '1'),
                 ('2', 'Заголовок 3', '2', '3'),
             ],
-            'Столбец 2': [
+            (32, 'Столбец 2'): [
                 ('33', 'Заголовок 1', '0', '0'),
                 ('43', 'Заголовок ttt', '3', '1'),
             ]
@@ -149,3 +144,20 @@ class UserInterface:
         # нужно перезаписать card_number_in_column для всех карточек в current_column_id и new_column_id
         return True
 
+    def add_edit_rights_on_public_desk(self, user_id, desk_id):
+        # добавляет пользователя права на редактирование публичной доски
+        return True
+
+    def del_edit_rights_on_public_desk(self, user_id, desk_id):
+        # удаляет пользователя права на редактирование публичной доски
+        return True
+
+    def get_all_user(self):
+        # список всех пользователе (user_id, login)
+        return [(1, 'Bob'), (3, 'Sera')]
+
+    def get_all_user_with_edit_rights(self, desk_id):
+        # список всех пользователе (user_id, login, can_edit_desk)
+        # can_edit_desk - может ли пользователь редактировать доску с desk_id
+        # (актуально только для общественных досок)
+        return [(1, 'Bob', 0), (3, 'Sera', 1), (33, 'Pol', 1)]
