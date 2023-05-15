@@ -99,8 +99,8 @@ def SignUp(window):
     button_style = {"bg": "#6DB0E3", "fg": "#043C66", "font": ("Arial Black", 12), "bd": 0, "activebackground": "#304D63"}
 
     # создаем кнопки
-    button_signup = Button(window, text="Зарегистрироваться", command = lambda: messagebox.showerror('Ошибка', 'Пользователь с таким логином уже существует'), **button_style)
-    #button_signup = Button(window, text="Зарегистрироваться", command=lambda: Menu(window), **button_style)
+    #button_signup = Button(window, text="Зарегистрироваться", command = lambda: messagebox.showerror('Ошибка', 'Пользователь с таким логином уже существует'), **button_style)
+    button_signup = Button(window, text="Зарегистрироваться", command=lambda: Menu(window), **button_style)
     button_back = Button(window, text="Назад", command=lambda: Start(window), **button_style)
     button_signup.config(width=20, height=1)
     button_back.config(width=10, height=1)
@@ -118,8 +118,8 @@ def Menu(window):
     button_style = {"bg": "#6DB0E3", "fg": "#043C66", "font": ("Arial Black", 12), "bd": 0, "activebackground": "#304D63"}
 
     # создаем кнопки
-    button_mytasks = Button(window, text="Мои доски", command=lambda: MyTasks(window), **button_style)
-    button_commontasks = Button(window, text="Общие доски", command=lambda: CommonTasks(window), **button_style)
+    button_mytasks = Button(window, text="Мои доски", command=lambda: TasksList(window, 15), **button_style)
+    button_commontasks = Button(window, text="Общие доски", command=lambda: TasksList(window, 0), **button_style)
     button_newtask = Button(window, text="Создать доску", command=lambda: NewTask(window), **button_style)
     button_back = Button(window, text="Выйти", command = lambda: Start(window), **button_style)
 
@@ -135,15 +135,60 @@ def Menu(window):
     button_newtask.place(relx=0.5, rely=0.7, anchor="center")
     button_back.place(relx=0.15, rely=0.05, anchor="center")
 
-def MyTasks(window):
+def TasksList(window, desksnum):
     # удаляем элементы окна
     for widget in window.winfo_children():
         widget.destroy()
 
-def CommonTasks(window):
-    # удаляем элементы окна
-    for widget in window.winfo_children():
-        widget.destroy()
+    # создаем стиль для кнопок
+    button_style = {"bg": "#6DB0E3", "fg": "#043C66", "font": ("Arial Black", 12), "bd": 0, "activebackground": "#304D63"}
+
+    if desksnum > 0:
+        # создаем кнопки
+        button_back = Button(window, text="Назад", command=lambda: Menu(window), **button_style)
+        button_tasks = []
+
+        # создаем контейнер для кнопок с возможностью прокрутки
+        canvas = Canvas(window, bg='#D7E3F5')
+        scrollbar = Scrollbar(window, orient=VERTICAL, command=canvas.yview)
+        frame = Frame(canvas)
+        frame.config(bg='#D7E3F5')
+
+        # привязываем фрейм к канвасу и настраиваем прокрутку
+        canvas.create_window((0, 0), window=frame, anchor='nw')
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        for i in range(desksnum):
+            button_tasks.append(Button(frame, text=f"Доска {i}", command=lambda: Menu(window), **button_style))
+            button_tasks[i].config(width=15, height=1)
+            button_tasks[i].pack(padx=45, pady=5)
+
+            # обновляем геометрию фрейма и канваса
+            frame.update_idletasks()
+            canvas.config(scrollregion=canvas.bbox("all"))
+
+        # задаем размеры кнопок
+        button_back.config(width=10, height=1)
+
+        # располагаем кнопки
+        button_back.place(relx=0.15, rely=0.05, anchor="center")
+        canvas.place(relx=0.5, rely=0.5, relwidth=0.6, relheight=0.8, anchor='center')
+        scrollbar.place(relx=0.8, rely=0.5, relheight=0.8, anchor='center', relwidth=0.05)
+    else:
+        # создаем кнопки
+        button_create = Button(window, text="Создать доску", command=lambda: NewTask(window), **button_style)
+        button_back = Button(window, text="Назад", command=lambda: Menu(window), **button_style)
+
+        label = Label(window, text="Здесь еще нет досок", bg="#D7E3F5", fg="#043C66", font=("Calibri", 16))
+
+        # задаем размеры кнопок
+        button_create.config(width=15, height=1)
+        button_back.config(width=10, height=1)
+
+        # располагаем текст и кнопки
+        label.place(relx=0.5, rely=0.5, anchor="center")
+        button_create.place(relx=0.5, rely=0.7, anchor="center")
+        button_back.place(relx=0.15, rely=0.05, anchor="center")
 
 def NewTask(window):
     # удаляем элементы окна
@@ -175,7 +220,7 @@ def NewTask(window):
     rb_shared = Radiobutton(window, text="Общая", variable=selected_tasktype, value="Общая", **radiobutton_style)
 
     # создаем кнопки
-    button_create = Button(window, text="Создать доску", command = lambda: Menu(window),  **button_style)
+    button_create = Button(window, text="Создать доску", command = lambda: (Menu(window), messagebox.showinfo('Создание доски', 'Доска успешно создана!')),  **button_style)
     button_back = Button(window, text="Назад", command = lambda: Menu(window), **button_style)
 
     # задаем размеры кнопок
