@@ -1,26 +1,11 @@
 import sqlite3
 import data.config
 
-
-class UserInterface:
+class DataBaseConnection:
     def __init__(self, login, password, path_to_db=data.config.path_to_database):
-        # if not self.try_log_in(login, password):
-        #     raise Exception('Пользователя с такими данными не существует! Неверен логин/пароль!')
-        self.path_to_db = path_to_db
-        # self.conn = sqlite3.connect('MainDB.db')
-        # self.curs = self.conn.cursor()
         self.login = login
+        self.path_to_db = path_to_db
         self.password = password
-        self.create_table_of_users()
-
-    def create_table_of_users(self):
-        sql = '''
-        create table IF NOT EXISTS `users` (
-          `user_id` INTEGER PRIMARY KEY AUTOINCREMENT not null,
-          `login` varchar(255) not null,
-          `password` varchar(255) not null
-        )'''
-        self.execute(sql, commit=True)
 
     @property
     def connection(self):
@@ -46,11 +31,29 @@ class UserInterface:
         connection.close()
         return data
 
+
+class Users:
+    def __init__(self, connection):
+        # if not self.try_log_in(login, password):
+        #     raise Exception('Пользователя с такими данными не существует! Неверен логин/пароль!')
+        self.connection = connection
+        self.create_table_of_users()
+
+    def create_table_of_users(self):
+        sql = '''
+        create table IF NOT EXISTS `users` (
+          `user_id` INTEGER PRIMARY KEY AUTOINCREMENT not null,
+          `login` varchar(255) not null,
+          `password` varchar(255) not null
+        )'''
+        self.connection.execute(sql, commit=True)
+
+
     # @staticmethod
     def is_login_exist(self, login):
         # проверяет существует ли пользователь с указанным логином
         sql = "SELECT * FROM users WHERE login=?"
-        result = self.execute(sql, (login,), fetchone=True)
+        result = self.connection.execute(sql, (login,), fetchone=True)
 
         if result is not None:
             print("Пользователь с таким логином существует")
@@ -63,7 +66,7 @@ class UserInterface:
     def try_log_in(self, login, password):
         # проверяет cуществует ли пользователь с логин/пароль
         sql = "SELECT * FROM users WHERE login=? AND password=?"
-        result = self.execute(sql, (login, password), fetchone=True)
+        result = self.connection.execute(sql, (login, password), fetchone=True)
 
         if result is not None:
             print("Пользователь с таким логином и паролем существует")
@@ -79,43 +82,57 @@ class UserInterface:
             return False
         # добавляем в бд нового пользователя
         sql_insert = "INSERT INTO users (login, password) VALUES (?, ?)"
-        self.execute(sql_insert, (login, password), commit=True)
+        self.connection.execute(sql_insert, (login, password), commit=True)
         print("Пользователь успешно добавлен")
         return True
 
     # @staticmethod
-    # def get_user_login_by_id(self, id):
-    #     # возвращает логин пользователя по id
-    #     sql = "SELECT login FROM users WHERE user_id =?"
-    #     result = self.execute(sql, (id,), fetchone=True)
-    #     login = result[0]
-    #     if result is not None:
-    #         print("Логин пользователя по его id")
-    #         return login
-    #
-    #
+    def get_user_login_by_id(self, id):
+        # возвращает логин пользователя по id
+        sql = "SELECT login FROM users WHERE user_id =?"
+        result = self.connection.execute(sql, (id,), fetchone=True)
+        login = result[0]
+        if result is not None:
+            # print("Логин пользователя по его id: ")
+            return login
+
+
     # @staticmethod
-    # def get_user_id_by_login(self, login):
-    #     # возвращает id пользователя по логину (логин уникален для каждого пользователя)
-    #     sql = "SELECT id FROM users WHERE login=?"
-    #     result = self.execute(sql, (login,), fetchone=True)
-    #     id = result[0]
-    #     if result is not None:
-    #         print("id пользователя по его логину")
-    #         return id
-    #
-    # def create_desk(self, desk_name, desk_type):
-    #     # создаём доску в бд
-    #     # владелец доски self.login
-    #     # True - доска успешно создана
-    #     # False - доска с таким именем уже существует
-    #     return True
-    #
-    # def get_owned_desks(self):
-    #     # список досок которыми владает пользователь (self.login) в формате (desk_id, desk_name, public, owner_login)
-    #
-    #     return [(0, 'Доска 1', 0, 'Myself'), (1, 'Доска для 2112', 1, 'Myself')]
-    #
+    def get_user_id_by_login(self, login):
+        # возвращает id пользователя по логину (логин уникален для каждого пользователя)
+        sql = "SELECT user_id FROM users WHERE login=?"
+        result = self.connection.execute(sql, (login,), fetchone=True)
+        id = result[0]
+        if result is not None:
+            # print("id пользователя по его логину")
+            return id
+
+
+class Desks:
+    def __init__(self, connection):
+        self.path_to_db = path_to_db
+        self.connection = connection
+        self.create_desk()
+
+    def create_desk(self, desk_name, desk_type):
+        sql = '''
+        create table IF NOT EXISTS `desks` (
+          "desk_id" INTEGER PRIMARY KEY AUTOINCREMENT not null,
+          "desk_name" varchar(255) not null,
+          "public" BOOLEAN not null,
+          "owner_login" varchar(255) not null
+        )'''
+        self.connection.execute(sql, commit=True)
+        # создаём доску в бд
+        # владелец доски self.login
+        # False - доска с таким именем уже существует
+        # return True  # True - доска успешно создана
+
+    def get_owned_desks(self):
+        # список досок которыми владает пользователь (self.login) в формате (desk_id, desk_name, public, owner_login)
+
+        return [(0, 'Доска 1', 0, 'Myself'), (1, 'Доска для 2112', 1, 'Myself')]
+
     # def get_public_desks(self):
     #     # список публичных досок досок в формате (desk_id, desk_name, public)
     #
@@ -145,12 +162,15 @@ class UserInterface:
     #     # False - доска с таким именем уже существует
     #
     #     return True
-
-
 if __name__ == '__main__':
-    ui = UserInterface("Misha", "Elkin")
+    conn = DataBaseConnection("Misha", "Elkin")
+    user1 = Users(conn)
+    user1.add_new_user("Sasha", "Sanya")
     # ui.add_new_user("Misha", "Elkin")
-    print("\n")
-    ui.add_new_user()
-    # UI2 = UserInterface("Misha", "Elkin")
-    # UI2.add_new_user("Gleb", "Kim")
+
+    # ui.add_new_user("Roma", "Slepchenko")
+
+    # list = ["Misha", "Gleb", "Roma"]
+    # for i in list:
+    #     print(ui.get_user_id_by_login(i))
+

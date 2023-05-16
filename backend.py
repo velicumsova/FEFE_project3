@@ -13,7 +13,7 @@ class UserInterface:
         self.create_table_of_users()
 
 
-    def create_table_of_users(self):
+    def create_tables(self):
         sql = '''
         create table IF NOT EXISTS `users` (
           `user_id` INTEGER PRIMARY KEY AUTOINCREMENT not null,
@@ -22,6 +22,13 @@ class UserInterface:
         )'''
         self.execute(sql, commit=True)
 
+
+    def create_table_of_desk(self):
+        sql = '''
+        create table IF NOT EXISTS `desk` (
+            `desk_id` INTEGER PRIMARY KEY AUTOINCREMENT not null,
+            
+        )'''
     @property
     def connection(self):
         return sqlite3.connect(self.path_to_db)
