@@ -13,7 +13,7 @@ class UserInterface:
         self.create_table_of_users()
 
 
-    def create_tables(self):
+    def create_table_of_users(self):
         sql = '''
         create table IF NOT EXISTS `users` (
           `user_id` INTEGER PRIMARY KEY AUTOINCREMENT not null,
@@ -121,12 +121,12 @@ class UserInterface:
         return True
 
     def get_owned_desks(self):
-        # список досок которыми владает пользователь (self.login) в формате (desk_id, desk_name, public, owner_login)
+        # список досок которыми владеет пользователь (self.login) в формате (desk_id, desk_name, public, owner_login)
 
         return [(0, 'Доска 1', 0, 'Myself'), (1, 'Доска для 2112', 1, 'Myself')]
 
     def get_public_desks(self):
-        # список публичных досок досок в формате (desk_id, desk_name, public)
+        # список публичных досок в формате (desk_id, desk_name, public)
 
         return [(33, 'Доска 333', 1, 'Sera'), (222, 'Доска 77', 1, 'Bob')]
 

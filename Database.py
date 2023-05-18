@@ -4,8 +4,8 @@ import data.config
 class DataBaseConnection:
     def __init__(self, login, password, path_to_db=data.config.path_to_database):
         self.login = login
-        self.path_to_db = path_to_db
         self.password = password
+        self.path_to_db = path_to_db
 
     @property
     def connection(self):
@@ -17,7 +17,6 @@ class DataBaseConnection:
             parameters = tuple()
 
         connection = self.connection
-        # connection.set_trace_callback(logger)
         cursor = connection.cursor()
         cursor.execute(sql, parameters)
         data = None
@@ -33,8 +32,10 @@ class DataBaseConnection:
 
 
 class Users:
-    def __init__(self, connection):
-        # if not self.try_log_in(login, password):
+    def __init__(self, connection: DataBaseConnection):
+        self.login = connection.login
+        self.password = connection.password
+        # if not self.try_log_in(self.login, self.password):
         #     raise Exception('Пользователя с такими данными не существует! Неверен логин/пароль!')
         self.connection = connection
         self.create_table_of_users()
@@ -56,10 +57,10 @@ class Users:
         result = self.connection.execute(sql, (login,), fetchone=True)
 
         if result is not None:
-            print("Пользователь с таким логином существует")
+            # print("Пользователь с таким логином существует")
             return True  # существует
         else:
-            print("Пользователя с таким логином не существует")
+            # print("Пользователя с таким логином не существует")
             return False  # не существует
 
     # @staticmethod
@@ -75,6 +76,7 @@ class Users:
             print("Пользователя с таким логином и паролем не существует")
             return False  # не существует (Неверен логин/пароль)
 
+
     # @staticmethod
     def add_new_user(self, login, password):
         if self.is_login_exist(login):
@@ -85,6 +87,7 @@ class Users:
         self.connection.execute(sql_insert, (login, password), commit=True)
         print("Пользователь успешно добавлен")
         return True
+
 
     # @staticmethod
     def get_user_login_by_id(self, id):
@@ -109,24 +112,31 @@ class Users:
 
 
 class Desks:
-    def __init__(self, connection):
-        self.path_to_db = path_to_db
+    def __init__(self, connection: DataBaseConnection):
+        self.login = connection.login
+        self.password = connection.password
         self.connection = connection
-        self.create_desk()
+        self.create_desk_table()
+        # self.create_desk_table("first desk", 1)
 
-    def create_desk(self, desk_name, desk_type):
+    def create_desk_table(self):
         sql = '''
         create table IF NOT EXISTS `desks` (
           "desk_id" INTEGER PRIMARY KEY AUTOINCREMENT not null,
           "desk_name" varchar(255) not null,
           "public" BOOLEAN not null,
-          "owner_login" varchar(255) not null
+          "owner_login" varchar(255) REFERENCES users(login)
         )'''
         self.connection.execute(sql, commit=True)
         # создаём доску в бд
         # владелец доски self.login
         # False - доска с таким именем уже существует
-        # return True  # True - доска успешно создана
+        # return True - доска успешно создана
+
+    def create_desk(self, desk_name, desk_type):
+        sql_insert = "INSERT INTO desks (desk_name, public, owner_login) VALUES (?, ?, ?)"
+        self.connection.execute(sql_insert, (desk_name, desk_type, self.login), commit=True)
+        print("Доска успешно создана!")
 
     def get_owned_desks(self):
         # список досок которыми владает пользователь (self.login) в формате (desk_id, desk_name, public, owner_login)
@@ -162,15 +172,14 @@ class Desks:
     #     # False - доска с таким именем уже существует
     #
     #     return True
+
 if __name__ == '__main__':
-    conn = DataBaseConnection("Misha", "Elkin")
-    user1 = Users(conn)
-    user1.add_new_user("Sasha", "Sanya")
-    # ui.add_new_user("Misha", "Elkin")
+    conn1 = DataBaseConnection("Roma", "Slepchenko")
+    user1 = Users(conn1)
+    # user1.add_new_user("Sergey", "Pristup")
+    # user1.add_new_user("Misha", "Elkin")
+    # user1.add_new_user("Stepan", "Kotelnikov")
 
-    # ui.add_new_user("Roma", "Slepchenko")
-
-    # list = ["Misha", "Gleb", "Roma"]
-    # for i in list:
-    #     print(ui.get_user_id_by_login(i))
-
+    desk1 = Desks(conn1)
+    desk1.create_desk("first desk", 1)
+    # desk1.create_desk_table("second_desk", 0)
